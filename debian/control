@@ -1,0 +1,15 @@
+Source: duckdns
+Section: utils
+Priority: optional
+Maintainer: HamoniKR <pkg@hamonikr.org>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.9.5
+
+Package: duckdns
+Architecture: all
+Depends: zenity,
+         cron,
+         curl,
+Replaces:         
+Description: Duck DNS GUI
+ Duck DNS Setting Tool.

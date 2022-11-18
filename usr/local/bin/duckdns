@@ -1,0 +1,151 @@
+#!/bin/bash
+# 
+# Duck DNS setup GUI version 1.0
+# 
+# HamoniKR <pkg@hamonikr.org> 2022
+# This code is licensed under MIT license (see LICENSE for details)
+#  
+# This script should work on most unix/linux based systems
+# that use bash and have cron and zenity installed 
+#
+# For more information about Duck DNS - http://www.duckdns.org/
+
+#	TRANSLATIONS
+case $LANG in
+	# Korean by Kevin Kim
+	ko* )
+    title="Duck DNS Setup       "
+		text1="등록된 Duck DNS 도메인을 입력하세요.\n\n만약 보유한 Duck DNS 도메인이 없는 경우에는\n먼저 www.duckdns.org 에서 계정을 등록해야 합니다."
+		button1="다음"
+    text2="정상적인 Duck DNS 도메인이 아닙니다.\n\nDuck DNS 도메인을 다시 입력하세요."
+    text3="Duck DNS 계정의 토큰 값을 입력하세요.\n\n토큰 값은 www.duckdns.org 에서 확인할 수 있습니다."
+    text4="입력한 값으로 설정을 계속하시려면 '다음' 버튼을 클릭하세요.\n"
+    button2="취소"
+    text5="프로그램 설치를 중단합니다."
+    button3="확인"
+    text6="설치에 필요한 curl 명령어를 찾을 수 없습니다\n\ncurl 프로그램 설치 후 재실행 하시기 바랍니다."
+    text7="[오류] Duck DNS 가 정상 동작하지 않습니다.\n\n인터넷 연결이나, 설정한 도메인 및 토큰 값을 확인 후 다시 설치하시기 바랍니다."
+    text8="이제 Duck DNS 가 정상적으로 동작하고 있습니다."
+    text9="Duck DNS 설치가 완료 되었습니다.\n\nDuck DNS 상태 :"
+	;;
+  # default language as english
+	*)
+		title="Duck DNS Setup       "
+		text1="Enter your registered Duck DNS domain.\n\nIf you do not have a Duck DNS domain you have,\nyou must first register an account at www.duckdns.org"
+		button1="Next"
+		text2="Invalid domain name.\n\nThe program will now quit."
+    text3="Enter your Duck DNS Token value"
+    text4="Please click Next to continue or Cancel to quit.\nIt will take a few seconds for the setup to complete."
+    button2="Cancel"
+    text5="Setup canceled"
+    button3="Done"
+    text6="Command not found : curl\n\nTry again, after install curl."
+    text7="[Error] Duck DNS did not update correctly.\n\nPlease check your settings or run the setup again."
+    text8="Duck DNS is working fine."
+    text9="Duck DNS setup complete\n\nDuck DNS Status :"
+	;;  
+esac
+
+userHome=$(eval echo ~${USER})
+duckPath="$userHome/duckdns"
+duckLog="$duckPath/duck.log"
+duckScript="$duckPath/duck.sh"
+
+if ! command -v curl &> /dev/null
+then
+    zenity --error --title "$title" --text="$text6"
+    exit 0
+fi
+
+case "$1" in
+	remove)
+    zenity --question --title "$title" --text "Completely remove Duck DNS settings?"  
+    if [ "$?" -eq "1" ]
+      then
+        echo "Setup cancelled. Program will now quit."
+        exit 0 
+    fi
+    # Remove Duck DNS files
+    rm -R $duckPath
+    # Remove Cron Job
+    crontab -l >/tmp/crontab.tmp
+    sed -e 's/\(^.*duck.sh$\)//g' /tmp/crontab.tmp  | crontab
+    rm /tmp/crontab.tmp  
+    zenity --info --title="$title" --text="<b>Duck DNS un-install complete</b>\n\n- Duck DNS script removed\n- Duck DNS folder removed\n- Duck DNS cron job removed" --ok-label="Done" 
+    exit 0        
+	;;
+	*)
+    # Install
+    # Get sub domain 
+    domainName=$( zenity --entry --title "$title" --text "$text1" --ok-label="$button1" --width="500")
+    mySubDomain="${domainName%%.*}"
+    duckDomain="${domainName#*.}"
+
+    if [ "$domainName" = "" ]; then
+      exit 0
+    fi
+
+    if [ "$duckDomain" != "duckdns.org" ] || [ "$mySubDomain" = "" ] 
+    then 
+      zenity --error --title "$title" --text="$text2" 
+      $0
+    else
+
+      # Get Token value
+      duckToken=$( zenity --entry --title "$title" --text "$text3" --ok-label="$button1" --width="500")
+
+      if [ "$duckToken" = "" ]; then
+        exit 0
+      fi      
+
+      # Display Confirmation
+      zenity --question --title="$title" --text="Domain :\n $mySubDomain.duckdns.org \n\nToken value :\n $duckToken\n\n$text4" --ok-label="$button1" --cancel-label="$button2" --width="500"
+
+      # Check if Cancel was pressed
+      if [ "$?" -eq "1" ]
+        then
+          zenity --warning --text="$text5" --title "$title" --width="500" --ok-label="$button3"
+          exit 0
+      fi
+
+      # Create duck dir
+      if [ ! -d "$duckPath" ] 
+      then
+        mkdir "$duckPath"
+      fi
+
+      # Create duck script file
+      echo "echo url=\"https://www.duckdns.org/update?domains=$mySubDomain&token=$duckToken&ip=\" | curl -k -o $duckLog -K -" > $duckScript
+      chmod 700 $duckScript      
+
+      # Create Conjob
+      # Check if job already exists
+      checkCron=$( crontab -l | grep -c $duckScript )
+      if [ "$checkCron" -eq 0 ] 
+      then
+        # Add cronjob
+        echo "Adding Cron job for Duck DNS"
+        crontab -l | { cat; echo "*/5 * * * * $duckScript"; } | crontab -
+      fi
+
+      # Test Setup
+      # Run now
+      $duckScript
+      # Response
+      duckResponse=$( cat $duckLog )
+      if [ "$duckResponse" != "OK" ]
+      then
+        responseExtra="$text7"
+      else
+        responseExtra="$text8"
+      fi
+
+      # Setup report
+      zenity --info --title="$title" --text="$text9\n$duckResponse\n\n$responseExtra" --ok-label="$button3"  --width="500"
+      exit 
+
+    fi
+
+  ;;    
+	
+esac

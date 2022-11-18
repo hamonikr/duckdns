@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Duck DNS
+Name[ko]=Duck DNS 설정
+Exec=duckdns
+Comment=Duck DNS Setup
+Comment[ko]=Duck DNS 설정 도구
+Terminal=false
+Icon=duckdns
+Type=Application
+Categories=Utility; 
