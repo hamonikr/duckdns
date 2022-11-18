@@ -13,9 +13,9 @@ Duck DNS 는 도메인 필요한 사용자가 무료로 도메인을 사용할 �
 2. Open Terminal and Type as below
 
 ```sh
-sudo dpkg -i duckdns*.deb
+sudo dpkg -i duckdns_*.deb
 ```
-ㄴ
+
 ## Author
 
 👤 [Kevin Kim](https://github.com/chaeya)
