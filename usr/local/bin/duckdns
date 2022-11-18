@@ -14,7 +14,7 @@
 case $LANG in
 	# Korean by Kevin Kim
 	ko* )
-    title="Duck DNS Setup       "
+    title="Duck DNS Setup v1.0"
 		text1="등록된 Duck DNS 도메인을 입력하세요.\n\n만약 보유한 Duck DNS 도메인이 없는 경우에는\n먼저 www.duckdns.org 에서 계정을 등록해야 합니다."
 		button1="다음"
     text2="정상적인 Duck DNS 도메인이 아닙니다.\n\nDuck DNS 도메인을 다시 입력하세요."
@@ -30,7 +30,7 @@ case $LANG in
 	;;
   # default language as english
 	*)
-		title="Duck DNS Setup       "
+		title="Duck DNS Setup v1.0"
 		text1="Enter your registered Duck DNS domain.\n\nIf you do not have a Duck DNS domain you have,\nyou must first register an account at www.duckdns.org"
 		button1="Next"
 		text2="Invalid domain name.\n\nThe program will now quit."
