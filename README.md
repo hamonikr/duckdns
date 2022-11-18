@@ -19,9 +19,11 @@ sudo dpkg -i duckdns_*.deb
 #### 1. Create your account from Duck DNS Service
  - https://www.duckdns.org/
 
-#### 2. Setup your domain
+#### 2. Create your domain and Copy token from Duck DNS Service
+![duckdns_site](./imgs/duckdns_site.png) 
+#### 3. Run App and Setup your domain
 ![setup domain](./imgs/duckdns_en_1.png) 
-#### 3. Setup your token
+#### 4. Setup your token
 ![setup token](./imgs/duckdns_en_2.png) 
 
 ## how to translate
